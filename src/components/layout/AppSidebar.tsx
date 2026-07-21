@@ -1,4 +1,3 @@
-import * as React from "react"
 import { Link, NavLink, useLocation } from "react-router-dom"
 import { LayoutDashboard, FileText, Building2, Settings, GitBranch, Plus } from "lucide-react"
 import {
@@ -12,7 +11,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { useAppStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 
 export function AppSidebar() {

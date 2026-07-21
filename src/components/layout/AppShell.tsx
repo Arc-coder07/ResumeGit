@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Outlet, useLocation } from "react-router-dom"
-import { Search, Sun, Moon } from "lucide-react"
+import { Sun, Moon } from "lucide-react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"

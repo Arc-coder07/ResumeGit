@@ -176,7 +176,8 @@ export async function deleteRole(id: string): Promise<void> {
 // ============================================================
 
 export async function getVersionsByRole(roleId: string): Promise<Version[]> {
-  return db.versions.where('roleId').equals(roleId).orderBy('versionNumber').reverse().toArray()
+  const versions = await db.versions.where('roleId').equals(roleId).toArray()
+  return versions.sort((a, b) => b.versionNumber - a.versionNumber)
 }
 
 export async function getVersion(id: string): Promise<Version | undefined> {
