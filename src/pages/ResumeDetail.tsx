@@ -10,7 +10,9 @@ import {
   ExternalLink,
   Edit,
   ArrowLeft,
-  GitBranch,
+  Upload,
+  Download,
+  Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +35,7 @@ import { useAppStore } from '@/lib/store'
 import * as db from '@/lib/db'
 import type { Role, Version } from '@/types'
 import { toast } from 'sonner'
+import { FilePreviewDialog } from '@/components/version/FilePreviewDialog'
 
 export default function ResumeDetail() {
   const { resumeId } = useParams<{ resumeId: string }>()
@@ -58,6 +61,8 @@ export default function ResumeDetail() {
   const [roleNotes, setRoleNotes] = useState('')
   const [versionTitle, setVersionTitle] = useState('')
   const [versionSummary, setVersionSummary] = useState('')
+  const [selectedVersionFile, setSelectedVersionFile] = useState<File | null>(null)
+  const [previewMasterOpen, setPreviewMasterOpen] = useState(false)
 
   const toggleCompany = (id: string) => {
     setExpandedCompanies((prev) => {
@@ -123,8 +128,41 @@ export default function ResumeDetail() {
     }
   }
 
+  const handleMasterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !resume) return
+    try {
+      await db.updateResume(resume.id, {
+        masterFileData: file,
+        masterFileName: file.name,
+        masterFileType: file.type
+      })
+      triggerRefresh()
+      toast.success('Master resume uploaded')
+    } catch {
+      toast.error('Failed to upload master resume')
+    }
+  }
+
+  const handleMasterDownload = () => {
+    if (!resume?.masterFileData) return
+    try {
+      const blob = resume.masterFileData instanceof ArrayBuffer ? new Blob([resume.masterFileData]) : resume.masterFileData
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = resume.masterFileName || `${resume.name}-master`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error('Failed to download master resume')
+    }
+  }
+
   const handleAddVersion = async () => {
-    if (!selectedRoleId || !versionSummary.trim()) return
+    if (!selectedRoleId || !versionSummary.trim() || !selectedVersionFile) return
     try {
       const existingVersions = await db.getVersionsByRole(selectedRoleId)
       const nextNum = existingVersions.length > 0
@@ -137,22 +175,10 @@ export default function ResumeDetail() {
         versionNumber: nextNum,
         title: versionTitle.trim() || `Version ${nextNum}`,
         summary: versionSummary.trim(),
-        content: {
-          type: 'doc',
-          content: [
-            {
-              type: 'heading',
-              attrs: { level: 1 },
-              content: [{ type: 'text', text: resume?.name || 'Resume' }],
-            },
-            {
-              type: 'paragraph',
-              content: [
-                { type: 'text', text: 'Start editing your resume here...' },
-              ],
-            },
-          ],
-        },
+        fileData: selectedVersionFile,
+        fileName: selectedVersionFile.name,
+        fileType: selectedVersionFile.type,
+        fileSize: selectedVersionFile.size,
         previousVersionId: existingVersions.find((v) => v.isCurrent)?.id ?? null,
         isCurrent: true,
         createdAt: new Date(),
@@ -163,6 +189,7 @@ export default function ResumeDetail() {
       setAddVersionOpen(false)
       setVersionTitle('')
       setVersionSummary('')
+      setSelectedVersionFile(null)
       toast.success(`Created v${nextNum}`)
     } catch {
       toast.error('Failed to create version')
@@ -230,6 +257,57 @@ export default function ResumeDetail() {
               {resume.description}
             </p>
           )}
+
+          {/* Master Resume Upload Area */}
+          <div className="mt-4 p-4 border border-dashed rounded-lg bg-muted/30">
+            <h3 className="text-sm font-semibold mb-2">Master Resume</h3>
+            {resume.masterFileData ? (
+              <div className="flex items-center gap-3">
+                <FileText className="w-8 h-8 text-primary" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{resume.masterFileName}</p>
+                  <p className="text-xs text-muted-foreground">Source document</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setPreviewMasterOpen(true)}>
+                    <Eye className="w-4 h-4 mr-1" /> Preview
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleMasterDownload}>
+                    <Download className="w-4 h-4 mr-1" /> Download
+                  </Button>
+                  <div className="relative">
+                    <Button variant="outline" size="sm" onClick={() => document.getElementById('master-upload')?.click()}>
+                      Replace
+                    </Button>
+                    <input 
+                      id="master-upload" 
+                      type="file" 
+                      className="hidden" 
+                      onChange={handleMasterUpload} 
+                      accept=".pdf,.doc,.docx"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Upload the original source resume for reference.</p>
+                <div>
+                  <Button variant="secondary" size="sm" onClick={() => document.getElementById('master-upload')?.click()}>
+                    <Upload className="w-4 h-4 mr-1" />
+                    Upload Master
+                  </Button>
+                  <input 
+                    id="master-upload" 
+                    type="file" 
+                    className="hidden" 
+                    onChange={handleMasterUpload} 
+                    accept=".pdf,.doc,.docx"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2 flex-shrink-0">
@@ -537,15 +615,23 @@ export default function ResumeDetail() {
           <DialogHeader>
             <DialogTitle>
               <div className="flex items-center gap-2">
-                <GitBranch className="w-5 h-5" />
-                Create New Version
+                <Upload className="w-5 h-5" />
+                Upload New Version
               </div>
             </DialogTitle>
             <DialogDescription>
-              A new version will be created and set as the current version.
+              Upload a tailored PDF or DOCX file as a new version.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">File *</label>
+              <Input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => setSelectedVersionFile(e.target.files?.[0] || null)}
+              />
+            </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Title (optional)</label>
               <Input
@@ -566,13 +652,35 @@ export default function ResumeDetail() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddVersionOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddVersion} disabled={!versionSummary.trim()}>
-              <GitBranch className="w-4 h-4 mr-1" />
-              Create Version
+            <Button onClick={handleAddVersion} disabled={!versionSummary.trim() || !selectedVersionFile}>
+              <Upload className="w-4 h-4 mr-1" />
+              Upload Version
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Master Resume Preview */}
+      {resume.masterFileData && previewMasterOpen && (
+        <FilePreviewDialog
+          isOpen={previewMasterOpen}
+          onClose={() => setPreviewMasterOpen(false)}
+          version={{
+            id: 'master',
+            roleId: '',
+            versionNumber: 0,
+            title: 'Master Resume',
+            summary: 'Source document',
+            fileData: resume.masterFileData,
+            fileName: resume.masterFileName || `${resume.name}-master`,
+            fileType: resume.masterFileType || 'application/pdf',
+            fileSize: 0,
+            previousVersionId: null,
+            isCurrent: true,
+            createdAt: resume.updatedAt,
+          }}
+        />
+      )}
     </div>
   )
 }
