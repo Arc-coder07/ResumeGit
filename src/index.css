@@ -1,0 +1,411 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   Design Tokens
+   ============================================================ */
+
+:root {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Light mode */
+  --background: hsl(0 0% 98%);
+  --foreground: hsl(224 20% 14%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(224 20% 14%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(224 20% 14%);
+  --primary: hsl(250 85% 60%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(224 10% 94%);
+  --secondary-foreground: hsl(224 20% 14%);
+  --muted: hsl(224 10% 94%);
+  --muted-foreground: hsl(224 10% 46%);
+  --accent: hsl(224 10% 94%);
+  --accent-foreground: hsl(224 20% 14%);
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(224 10% 89%);
+  --input: hsl(224 10% 89%);
+  --ring: hsl(250 85% 60%);
+
+  /* Status colors */
+  --success: hsl(152 60% 48%);
+  --warning: hsl(38 92% 50%);
+  --info: hsl(210 100% 52%);
+
+  /* Glass effect */
+  --glass-bg: hsla(0, 0%, 100%, 0.7);
+  --glass-border: hsla(224, 10%, 89%, 0.5);
+  --glass-shadow: 0 8px 32px hsla(224, 20%, 14%, 0.06);
+
+  /* Sidebar - light */
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(250 85% 60%);
+
+  --radius: 0.75rem;
+  --chart-1: hsl(12 76% 61%);
+  --chart-2: hsl(173 58% 39%);
+  --chart-3: hsl(197 37% 24%);
+  --chart-4: hsl(43 74% 66%);
+  --chart-5: hsl(27 87% 67%);
+}
+
+.dark {
+  --background: hsl(224 30% 6%);
+  --foreground: hsl(224 10% 92%);
+  --card: hsl(224 20% 10%);
+  --card-foreground: hsl(224 10% 92%);
+  --popover: hsl(224 20% 10%);
+  --popover-foreground: hsl(224 10% 92%);
+  --primary: hsl(250 85% 65%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(224 15% 16%);
+  --secondary-foreground: hsl(224 10% 88%);
+  --muted: hsl(224 15% 16%);
+  --muted-foreground: hsl(224 10% 55%);
+  --accent: hsl(224 15% 16%);
+  --accent-foreground: hsl(224 10% 88%);
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(224 15% 18%);
+  --input: hsl(224 15% 18%);
+  --ring: hsl(250 85% 65%);
+
+  --success: hsl(152 60% 48%);
+  --warning: hsl(38 92% 50%);
+  --info: hsl(210 100% 52%);
+
+  /* Glass effect - dark */
+  --glass-bg: hsla(224, 20%, 10%, 0.6);
+  --glass-border: hsla(224, 15%, 22%, 0.5);
+  --glass-shadow: 0 8px 32px hsla(0, 0%, 0%, 0.3);
+
+  /* Sidebar - dark */
+  --sidebar: hsl(224 25% 8%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(250 85% 65%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(224 15% 14%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(224 15% 14%);
+  --sidebar-ring: hsl(250 85% 65%);
+
+  --chart-1: hsl(220 70% 50%);
+  --chart-2: hsl(160 60% 45%);
+  --chart-3: hsl(30 80% 55%);
+  --chart-4: hsl(280 65% 60%);
+  --chart-5: hsl(340 75% 55%);
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ============================================================
+   Base Styles
+   ============================================================ */
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Glass Card Effect
+   ============================================================ */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--glass-shadow), 0 0 0 1px var(--primary);
+  border-color: hsl(250 85% 65% / 0.3);
+}
+
+/* ============================================================
+   Version Timeline
+   ============================================================ */
+
+.timeline-line {
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--border) 0%, transparent 100%);
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s ease;
+}
+
+.timeline-dot.current {
+  border-color: var(--success);
+  background: var(--success);
+  box-shadow: 0 0 12px hsl(152 60% 48% / 0.4);
+}
+
+.timeline-dot:hover {
+  transform: scale(1.15);
+}
+
+/* ============================================================
+   TipTap Editor Styles
+   ============================================================ */
+
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 400px;
+  padding: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.tiptap-editor .ProseMirror h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--foreground);
+}
+
+.tiptap-editor .ProseMirror h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.tiptap-editor .ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.tiptap-editor .ProseMirror p {
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-editor .ProseMirror ul,
+.tiptap-editor .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-editor .ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap-editor .ProseMirror a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.tiptap-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* ============================================================
+   Scrollbar Styling
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(224 10% 30%);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(224 10% 40%);
+}
+
+/* ============================================================
+   Print Styles (PDF export)
+   ============================================================ */
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .tiptap-editor .ProseMirror {
+    padding: 0;
+    min-height: auto;
+  }
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px hsl(250 85% 65% / 0.3); }
+  50% { box-shadow: 0 0 20px hsl(250 85% 65% / 0.5); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+/* Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* ============================================================
+   Reduced Motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .glass-card:hover {
+    transform: none;
+  }
+
+  .timeline-dot:hover {
+    transform: none;
+  }
+}
