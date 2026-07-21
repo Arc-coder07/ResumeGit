@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import {
   GitCommit,
@@ -9,6 +8,7 @@ import {
   MoreHorizontal,
   ChevronDown,
   ChevronRight,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,6 +33,7 @@ import type { Version } from '@/types'
 import { restoreVersion, duplicateVersion } from '@/lib/db'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
+import { FilePreviewDialog } from './FilePreviewDialog'
 
 interface VersionTimelineProps {
   versions: Version[]
@@ -43,6 +44,7 @@ interface VersionTimelineProps {
 export function VersionTimeline({ versions, compact = false }: VersionTimelineProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [restoreTarget, setRestoreTarget] = useState<Version | null>(null)
+  const [previewVersion, setPreviewVersion] = useState<Version | null>(null)
   const triggerRefresh = useAppStore((s) => s.triggerRefresh)
 
   const sortedVersions = [...versions].sort(
@@ -67,6 +69,22 @@ export function VersionTimeline({ versions, compact = false }: VersionTimelinePr
       toast.success(`Duplicated v${version.versionNumber}`)
     } catch {
       toast.error('Failed to duplicate version')
+    }
+  }
+
+  const handleDownload = (version: Version) => {
+    try {
+      const blob = version.fileData instanceof ArrayBuffer ? new Blob([version.fileData]) : version.fileData
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = version.fileName || `resume-v${version.versionNumber}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error('Failed to download file')
     }
   }
 
@@ -142,8 +160,14 @@ export function VersionTimeline({ versions, compact = false }: VersionTimelinePr
                       )}
 
                       {version.title && (
-                        <span className="text-sm text-muted-foreground truncate">
+                        <span className="text-sm text-muted-foreground truncate max-w-[150px]">
                           {version.title}
+                        </span>
+                      )}
+                      
+                      {version.fileName && (
+                        <span className="text-xs text-muted-foreground/60 truncate max-w-[150px]">
+                          ({version.fileName})
                         </span>
                       )}
                     </div>
@@ -169,12 +193,19 @@ export function VersionTimeline({ versions, compact = false }: VersionTimelinePr
                           variant="outline"
                           size="sm"
                           className="h-7 text-xs"
-                          asChild
+                          onClick={() => setPreviewVersion(version)}
                         >
-                          <Link to={`/editor/${version.id}`}>
-                            <Eye className="w-3 h-3 mr-1" />
-                            Preview
-                          </Link>
+                          <Eye className="w-3 h-3 mr-1" />
+                          Preview
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleDownload(version)}
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download
                         </Button>
 
                         {!version.isCurrent && (
@@ -214,11 +245,13 @@ export function VersionTimeline({ versions, compact = false }: VersionTimelinePr
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/editor/${version.id}`}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Open in Editor
-                        </Link>
+                      <DropdownMenuItem onClick={() => setPreviewVersion(version)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDownload(version)}>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download File
                       </DropdownMenuItem>
                       {!version.isCurrent && (
                         <DropdownMenuItem
@@ -268,6 +301,15 @@ export function VersionTimeline({ versions, compact = false }: VersionTimelinePr
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* File Preview */}
+      {previewVersion && (
+        <FilePreviewDialog 
+          version={previewVersion} 
+          isOpen={!!previewVersion} 
+          onClose={() => setPreviewVersion(null)} 
+        />
+      )}
     </>
   )
 }

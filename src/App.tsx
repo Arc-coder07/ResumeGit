@@ -11,7 +11,6 @@ const Resumes = React.lazy(() => import("./pages/Resumes"))
 const ResumeDetail = React.lazy(() => import("./pages/ResumeDetail"))
 const Companies = React.lazy(() => import("./pages/Companies"))
 const CompanyPage = React.lazy(() => import("./pages/CompanyPage"))
-const EditorPage = React.lazy(() => import("./pages/EditorPage"))
 const Settings = React.lazy(() => import("./pages/Settings"))
 
 // Loading fallback
@@ -33,7 +32,6 @@ export default function App() {
             <Route path="resumes/:resumeId" element={<ResumeDetail />} />
             <Route path="companies" element={<Companies />} />
             <Route path="companies/:companyId" element={<CompanyPage />} />
-            <Route path="editor/:versionId" element={<EditorPage />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

@@ -18,7 +18,7 @@ export function AppSidebar() {
   
   const navItems = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
-    { title: "Resumes", url: "/resumes", icon: FileText },
+    { title: "Resume Vault", url: "/resumes", icon: FileText },
     { title: "Companies", url: "/companies", icon: Building2 },
     { title: "Settings", url: "/settings", icon: Settings },
   ]
