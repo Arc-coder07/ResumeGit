@@ -9,6 +9,9 @@ export interface Resume {
   description: string
   tags: string[]
   color: string
+  masterFileData?: Blob | ArrayBuffer
+  masterFileName?: string
+  masterFileType?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -71,8 +74,11 @@ export interface Version {
   versionNumber: number
   title: string
   summary: string
-  /** TipTap JSON document content */
-  content: Record<string, unknown>
+  /** The uploaded resume document */
+  fileData: Blob | ArrayBuffer
+  fileName: string
+  fileType: string
+  fileSize: number
   previousVersionId: string | null
   isCurrent: boolean
   createdAt: Date
@@ -159,5 +165,8 @@ export interface CreateVersionInput {
   roleId: string
   title: string
   summary: string
-  content: Record<string, unknown>
+  fileData: Blob | ArrayBuffer
+  fileName: string
+  fileType: string
+  fileSize: number
 }

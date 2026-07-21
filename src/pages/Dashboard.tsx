@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Building2, Briefcase, GitBranch, Clock, Plus, Edit } from 'lucide-react';
+import { FileText, Building2, Briefcase, GitBranch, Clock, Plus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { getDashboardStats, getRecentVersions } from '@/lib/db';
 import type { DashboardStats, Version } from '@/types';
@@ -87,7 +87,7 @@ export default function Dashboard() {
       <div className="space-y-4">
         <h3 className="text-xl font-semibold flex items-center gap-2">
           <Clock className="h-5 w-5 text-muted-foreground" />
-          Recent Versions
+          Recent Uploads
         </h3>
         <div className="space-y-3">
           {recentVersions.length === 0 ? (
@@ -96,12 +96,12 @@ export default function Dashboard() {
             </div>
           ) : (
             recentVersions.map((v) => (
-              <Link key={v.id} to={`/editor/${v.id}`} className="block glass-card p-4 rounded-xl hover:bg-muted/50 transition-colors">
+              <div key={v.id} className="block glass-card p-4 rounded-xl transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0"></div>
                     <div>
-                      <p className="font-semibold text-sm">v{v.versionNumber} - {v.title || 'Untitled'}</p>
+                      <p className="font-semibold text-sm">v{v.versionNumber} - {v.title || 'Untitled'} ({v.fileName || 'Unknown File'})</p>
                       <p className="text-xs text-muted-foreground line-clamp-1">{v.summary || 'No summary provided.'}</p>
                     </div>
                   </div>
@@ -109,7 +109,7 @@ export default function Dashboard() {
                     {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })}
                   </span>
                 </div>
-              </Link>
+              </div>
             ))
           )}
         </div>
@@ -138,11 +138,11 @@ export default function Dashboard() {
           </Link>
           <Link to="/resumes" className="border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all rounded-xl p-4 flex items-center gap-3 cursor-pointer group">
             <div className="bg-muted group-hover:bg-primary/10 p-2 rounded-lg transition-colors">
-              <Edit className="h-5 w-5 text-foreground group-hover:text-primary" />
+              <Plus className="h-5 w-5 text-foreground group-hover:text-primary" />
             </div>
             <div>
-              <p className="font-medium text-sm">Open Editor</p>
-              <p className="text-xs text-muted-foreground">Jump to recent edits</p>
+              <p className="font-medium text-sm">Upload Resume</p>
+              <p className="text-xs text-muted-foreground">Add to the vault</p>
             </div>
           </Link>
         </div>

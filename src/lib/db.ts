@@ -21,6 +21,18 @@ db.version(1).stores({
   versions: 'id, roleId, versionNumber, isCurrent, createdAt',
 })
 
+// V2: Schema changes for file uploads instead of rich text
+db.version(2).stores({
+  resumes: 'id, name, category, createdAt, updatedAt',
+  companies: 'id, name, createdAt',
+  companyProfiles: 'id, resumeId, companyId, [resumeId+companyId]',
+  roles: 'id, companyProfileId, title, createdAt',
+  versions: 'id, roleId, versionNumber, isCurrent, createdAt',
+}).upgrade(async (tx) => {
+  // Wipe old versions as they contain incompatible 'content' fields
+  await tx.table('versions').clear()
+})
+
 export { db }
 
 // ============================================================
@@ -194,11 +206,11 @@ export async function addVersion(version: Version): Promise<string> {
   return db.versions.add(version)
 }
 
-export async function updateVersionContent(
+export async function updateVersionMetadata(
   id: string,
-  content: Record<string, unknown>
+  changes: Partial<Pick<Version, 'title' | 'summary'>>
 ): Promise<number> {
-  return db.versions.update(id, { content })
+  return db.versions.update(id, changes)
 }
 
 export async function restoreVersion(id: string): Promise<void> {
@@ -237,7 +249,10 @@ export async function duplicateVersion(
     versionNumber: newVersionNumber,
     title: `Duplicated from v${source.versionNumber}`,
     summary: `Duplicated from version ${source.versionNumber}`,
-    content: JSON.parse(JSON.stringify(source.content)),
+    fileData: source.fileData,
+    fileName: source.fileName,
+    fileType: source.fileType,
+    fileSize: source.fileSize,
     previousVersionId: null,
     isCurrent: true,
     createdAt: new Date(),
@@ -310,6 +325,21 @@ export async function getResumeStats(resumeId: string) {
 // Export / Import
 // ============================================================
 
+export async function blobToBase64(blob: Blob | ArrayBuffer): Promise<string> {
+  const fileBlob = blob instanceof ArrayBuffer ? new Blob([blob]) : blob;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(fileBlob);
+  });
+}
+
+export async function base64ToBlob(base64: string): Promise<Blob> {
+  const res = await fetch(base64);
+  return res.blob();
+}
+
 export async function exportAllData() {
   const [resumes, companies, companyProfiles, roles, versions] = await Promise.all([
     db.resumes.toArray(),
@@ -318,15 +348,33 @@ export async function exportAllData() {
     db.roles.toArray(),
     db.versions.toArray(),
   ])
-  return { resumes, companies, companyProfiles, roles, versions, exportedAt: new Date().toISOString() }
+  
+  const processedVersions = await Promise.all(versions.map(async (v) => ({
+    ...v,
+    fileData: await blobToBase64(v.fileData)
+  })))
+  
+  const processedResumes = await Promise.all(resumes.map(async (r) => ({
+    ...r,
+    masterFileData: r.masterFileData ? await blobToBase64(r.masterFileData) : undefined
+  })))
+
+  return { 
+    resumes: processedResumes, 
+    companies, 
+    companyProfiles, 
+    roles, 
+    versions: processedVersions, 
+    exportedAt: new Date().toISOString() 
+  }
 }
 
 export async function importAllData(data: {
-  resumes: Resume[]
+  resumes: any[]
   companies: Company[]
   companyProfiles: CompanyProfile[]
   roles: Role[]
-  versions: Version[]
+  versions: any[]
 }) {
   await db.transaction('rw', [db.resumes, db.companies, db.companyProfiles, db.roles, db.versions], async () => {
     await db.resumes.clear()
@@ -335,14 +383,26 @@ export async function importAllData(data: {
     await db.roles.clear()
     await db.versions.clear()
 
-    // Restore dates from JSON strings
     const parseDate = (d: Date | string) => new Date(d)
 
-    await db.resumes.bulkAdd(data.resumes.map(r => ({ ...r, createdAt: parseDate(r.createdAt), updatedAt: parseDate(r.updatedAt) })))
+    const processedVersions = await Promise.all(data.versions.map(async (v) => ({
+      ...v,
+      fileData: await base64ToBlob(v.fileData),
+      createdAt: parseDate(v.createdAt)
+    })))
+    
+    const processedResumes = await Promise.all(data.resumes.map(async (r) => ({
+      ...r,
+      masterFileData: r.masterFileData ? await base64ToBlob(r.masterFileData) : undefined,
+      createdAt: parseDate(r.createdAt),
+      updatedAt: parseDate(r.updatedAt)
+    })))
+
+    await db.resumes.bulkAdd(processedResumes)
     await db.companies.bulkAdd(data.companies.map(c => ({ ...c, createdAt: parseDate(c.createdAt) })))
     await db.companyProfiles.bulkAdd(data.companyProfiles.map(cp => ({ ...cp, createdAt: parseDate(cp.createdAt) })))
     await db.roles.bulkAdd(data.roles.map(r => ({ ...r, createdAt: parseDate(r.createdAt), updatedAt: parseDate(r.updatedAt) })))
-    await db.versions.bulkAdd(data.versions.map(v => ({ ...v, createdAt: parseDate(v.createdAt) })))
+    await db.versions.bulkAdd(processedVersions)
   })
 }
 
